@@ -124,3 +124,29 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User added successfully"))
 }
+
+func deleteUsersById(w http.ResponseWriter, r *http.Request) {
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	query := "DELETE FROM your_table WHERE id = @id"
+
+	// Prepare a slice to hold the user
+	var user User
+
+	err := db.QueryRow(query, sql.Named("id", id)).Scan(&user.Id, &user.Name, &user.Age)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert user slice to JSON
+	jsonUser, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set response headers and write JSON response
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonUser)
+}
