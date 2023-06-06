@@ -44,6 +44,7 @@ func main() {
 	router.HandleFunc("/users", getUsers).Methods("GET")
 	router.HandleFunc("/users/{id}", getUsersById).Methods("GET")
 	router.HandleFunc("/addusers", addUser).Methods("POST")
+	router.HandleFunc("/deleteuser/{id}", deleteUserById).Methods("DELETE")
 
 	// Start the server
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -125,28 +126,21 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User added successfully"))
 }
 
-func deleteUsersById(w http.ResponseWriter, r *http.Request) {
-
+func deleteUserById(w http.ResponseWriter, r *http.Request) {
+	// Get the user ID from the request URL parameters
 	params := mux.Vars(r)
 	id := params["id"]
 
-	query := "DELETE FROM your_table WHERE id = @id"
+	// Prepare the DELETE query
+	query := "DELETE FROM users WHERE id = @id"
 
-	// Prepare a slice to hold the user
-	var user User
-
-	err := db.QueryRow(query, sql.Named("id", id)).Scan(&user.Id, &user.Name, &user.Age)
+	// Execute the query to delete the user
+	_, err := db.Exec(query, sql.Named("id", id))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Convert user slice to JSON
-	jsonUser, err := json.Marshal(user)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Set response headers and write JSON response
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonUser)
+	// Return success response
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("User deleted successfully"))
 }
